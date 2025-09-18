@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
 import '../controllers/customer_controller.dart';
-import '../models/customer.dart'; // Add this import
+import '../models/customer.dart';
 import 'checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
@@ -76,9 +76,7 @@ class CartScreen extends StatelessWidget {
             padding: EdgeInsets.all(16),
             child: Column(
               children: [
-                Text('Subtotal: \$${cartController.totalAmount}'),
-                Text('Tax (10%): \$${cartController.taxAmount}'),
-                Text('Total: \$${cartController.finalTotal}',
+                Text('Total: \$${cartController.totalAmount}',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 ElevatedButton(
                   onPressed: () => Get.to(() => CheckoutScreen()),

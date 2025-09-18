@@ -34,6 +34,8 @@ dependencies:
   sqflite: ^2.3.0
   path: ^1.8.3
   shared_preferences: ^2.2.2
+  image_picker: ^1.1.2 # Add for image selection
+  path_provider: ^2.1.1 # Add for file storage
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

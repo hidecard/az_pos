@@ -15,4 +15,19 @@ class ProductController extends GetxController {
   Future<void> loadProducts() async {
     products.value = await _dbService.getProducts();
   }
+
+  Future<void> addProduct(Product product) async {
+    await _dbService.addProduct(product);
+    await loadProducts();
+  }
+
+  Future<void> updateProduct(Product product) async {
+    await _dbService.updateProduct(product);
+    await loadProducts();
+  }
+
+  Future<void> deleteProduct(int id) async {
+    await _dbService.deleteProduct(id);
+    await loadProducts();
+  }
 }

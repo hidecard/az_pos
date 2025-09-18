@@ -43,9 +43,6 @@ class CartController extends GetxController {
     return cartItems.fold(0.0, (sum, item) => sum + item.total);
   }
 
-  double get taxAmount => totalAmount * 0.1; // 10% tax
-  double get finalTotal => totalAmount + taxAmount;
-
   Future<void> checkout() async {
     if (selectedCustomer.value == null) {
       Get.snackbar('Error', 'Please select a customer');
@@ -58,10 +55,10 @@ class CartController extends GetxController {
       id: DateTime.now().millisecondsSinceEpoch,
       customer: selectedCustomer.value!,
       items: cartItems.toList(),
-      total: finalTotal,
+      total: totalAmount,
       date: DateTime.now(),
     ));
-    print('Receipt printed for order total: \$${finalTotal} for ${selectedCustomer.value!.name}');
+    print('Receipt printed for order total: \$${totalAmount} for ${selectedCustomer.value!.name}');
     cartItems.clear();
     selectedCustomer.value = null;
     Get.snackbar('Success', 'Order completed and stock updated!');

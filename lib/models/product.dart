@@ -3,7 +3,7 @@ class Product {
   final String name;
   final double price;
   final String imageUrl;
-  final int stock; // New field for stock quantity
+  final int stock;
 
   Product({
     required this.id,
@@ -28,7 +28,7 @@ class Product {
       id: map['id'],
       name: map['name'],
       price: map['price'].toDouble(),
-      imageUrl: map['imageUrl'],
+      imageUrl: map['imageUrl'] ?? '',
       stock: map['stock'],
     );
   }

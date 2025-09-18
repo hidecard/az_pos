@@ -14,7 +14,14 @@ class ProductCard extends StatelessWidget {
     return Card(
       child: Column(
         children: [
-          Expanded(child: Image.asset('assets/placeholder.png')),
+          Expanded(
+            child: product.imageUrl.isNotEmpty
+                ? Image.asset(
+                    product.imageUrl,
+                    errorBuilder: (context, error, stackTrace) => Icon(Icons.image, size: 50),
+                  )
+                : Icon(Icons.image, size: 50),
+          ),
           Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
           Text('\$${product.price}'),
           Text('Stock: ${product.stock}', style: TextStyle(color: product.stock > 0 ? Colors.green : Colors.red)),

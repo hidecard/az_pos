@@ -6,22 +6,22 @@ import '../controllers/customer_controller.dart';
 import '../widgets/product_card.dart';
 
 class HomeScreen extends StatelessWidget {
-  final ProductController productController = Get.put(ProductController());
-  final CartController cartController = Get.put(CartController());
-  final CustomerController customerController = Get.put(CustomerController());
+  final ProductController productController = Get.find();
+  final CartController cartController = Get.find();
+  final CustomerController customerController = Get.find();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Products')),
+      appBar: AppBar(title: Text('POS System')),
       body: Obx(() => GridView.builder(
-        padding: EdgeInsets.all(10),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
-        itemCount: productController.products.length,
-        itemBuilder: (context, index) {
-          return ProductCard(product: productController.products[index]);
-        },
-      )),
+            padding: EdgeInsets.all(10),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+            itemCount: productController.products.length,
+            itemBuilder: (context, index) {
+              return ProductCard(product: productController.products[index]);
+            },
+          )),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Get.toNamed('/cart'),
         child: Icon(Icons.shopping_cart),

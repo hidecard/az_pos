@@ -4,6 +4,8 @@ import 'package:sqflite/sqflite.dart';
 import '../models/product.dart';
 import '../models/customer.dart';
 import '../models/order.dart';
+import '../models/cart_item.dart';
+import 'dart:convert';
 
 class DatabaseService {
   static Database? _database;
@@ -48,6 +50,7 @@ class DatabaseService {
       CREATE TABLE $tableOrders(
         id INTEGER PRIMARY KEY,
         customerId INTEGER,
+        items TEXT,  -- Store items as JSON
         total REAL,
         date TEXT
       )
@@ -59,10 +62,31 @@ class DatabaseService {
     await db.insert(tableCustomers, {'id': 1, 'name': 'John Doe', 'phone': '1234567890', 'email': 'john@example.com'});
   }
 
+  // Product CRUD
   Future<List<Product>> getProducts() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(tableProducts);
     return List.generate(maps.length, (i) => Product.fromMap(maps[i]));
+  }
+
+  Future<void> addProduct(Product product) async {
+    final db = await database;
+    await db.insert(tableProducts, product.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> updateProduct(Product product) async {
+    final db = await database;
+    await db.update(
+      tableProducts,
+      product.toMap(),
+      where: 'id = ?',
+      whereArgs: [product.id],
+    );
+  }
+
+  Future<void> deleteProduct(int id) async {
+    final db = await database;
+    await db.delete(tableProducts, where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> updateStock(int productId, int newStock) async {
@@ -75,17 +99,77 @@ class DatabaseService {
     );
   }
 
+  // Customer CRUD
   Future<List<Customer>> getCustomers() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(tableCustomers);
     return List.generate(maps.length, (i) => Customer.fromMap(maps[i]));
   }
 
+  Future<void> addCustomer(Customer customer) async {
+    final db = await database;
+    await db.insert(tableCustomers, customer.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> updateCustomer(Customer customer) async {
+    final db = await database;
+    await db.update(
+      tableCustomers,
+      customer.toMap(),
+      where: 'id = ?',
+      whereArgs: [customer.id],
+    );
+  }
+
+  Future<void> deleteCustomer(int id) async {
+    final db = await database;
+    await db.delete(tableCustomers, where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Order History
+  Future<List<Order>> getOrders() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(tableOrders);
+    return Future.wait(maps.map((map) async {
+      final customer = await _getCustomerById(map['customerId']);
+      final itemsJson = map['items'] as String;
+      final List<dynamic> itemsList = jsonDecode(itemsJson);
+      final items = itemsList.map((item) => CartItem(
+            product: Product(
+              id: item['product']['id'],
+              name: item['product']['name'],
+              price: item['product']['price'].toDouble(),
+              stock: item['product']['stock'],
+              imageUrl: item['product']['imageUrl'],
+            ),
+            quantity: item['quantity'],
+          )).toList();
+      return Order(
+        id: map['id'],
+        customer: customer,
+        items: items,
+        total: map['total'].toDouble(),
+        date: DateTime.parse(map['date']),
+      );
+    }).toList());
+  }
+
+  Future<Customer> _getCustomerById(int id) async {
+    final db = await database;
+    final maps = await db.query(tableCustomers, where: 'id = ?', whereArgs: [id]);
+    return Customer.fromMap(maps.first);
+  }
+
   Future<void> saveOrder(Order order) async {
     final db = await database;
+    final itemsJson = jsonEncode(order.items.map((item) => {
+          'product': item.product.toMap(),
+          'quantity': item.quantity,
+        }).toList());
     await db.insert(tableOrders, {
       'id': order.id,
       'customerId': order.customer.id,
+      'items': itemsJson,
       'total': order.total,
       'date': order.date.toIso8601String(),
     });

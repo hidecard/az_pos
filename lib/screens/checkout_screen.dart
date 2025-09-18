@@ -15,11 +15,11 @@ class CheckoutScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text('Customer: ${cartController.selectedCustomer.value?.name ?? "None"}'),
-            Text('Total: \$${cartController.finalTotal}'),
+            Text('Total: \$${cartController.totalAmount}'),
             ElevatedButton(
               onPressed: () async {
                 await cartController.checkout();
-                Get.offAll(() => HomeScreen()); // Clear stack and go to home
+                Get.offAll(() => HomeScreen());
               },
               child: Text('Pay & Complete Order'),
             ),
