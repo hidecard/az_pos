@@ -53,6 +53,8 @@ class ProductCard extends StatelessWidget {
                   ? () {
                       if (cartController.addToCart(CartItem(product: product))) {
                         Get.snackbar('Success', '${product.name} added to cart');
+                      } else {
+                        Get.snackbar('Error', 'Not enough stock');
                       }
                     }
                   : null,

@@ -10,6 +10,7 @@ import 'screens/cart_screen.dart';
 import 'screens/product_management_screen.dart';
 import 'screens/customer_management_screen.dart';
 import 'screens/order_history_screen.dart';
+import 'screens/backup_restore_screen.dart';  // New import
 
 void main() {
   runApp(MyApp());
@@ -50,6 +51,7 @@ class MainScreen extends StatelessWidget {
     ProductManagementScreen(),
     CustomerManagementScreen(),
     OrderHistoryScreen(),
+    BackupRestoreScreen(),  // New screen
   ];
 
   final RxInt _currentIndex = 0.obs;
@@ -58,7 +60,10 @@ class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Obx(() => _screens[_currentIndex.value]),
+      body: Obx(() => IndexedStack(  // Use IndexedStack to preserve state across tabs
+        index: _currentIndex.value,
+        children: _screens,
+      )),
       bottomNavigationBar: Obx(() => BottomNavigationBar(
             currentIndex: _currentIndex.value,
             onTap: (index) => _currentIndex.value = index,
@@ -70,6 +75,7 @@ class MainScreen extends StatelessWidget {
               BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Products'),
               BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Customers'),
               BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Orders'),
+              BottomNavigationBarItem(icon: Icon(Icons.backup), label: 'Backup'),  // New tab
             ],
           )),
       floatingActionButton: Obx(() => badges.Badge(

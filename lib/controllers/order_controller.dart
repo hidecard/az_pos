@@ -3,8 +3,8 @@ import '../models/order.dart';
 import '../services/database_service.dart';
 
 class OrderController extends GetxController {
-  var orders = <Order>[].obs;
   final DatabaseService _dbService = DatabaseService();
+  var orders = <Order>[].obs;
 
   @override
   void onInit() {
