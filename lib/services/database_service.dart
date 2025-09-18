@@ -23,8 +23,9 @@ class DatabaseService {
     String path = join(await getDatabasesPath(), 'pos.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 3, // Incremented version
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -50,7 +51,7 @@ class DatabaseService {
       CREATE TABLE $tableOrders(
         id INTEGER PRIMARY KEY,
         customerId INTEGER,
-        items TEXT,  -- Store items as JSON
+        items TEXT,
         total REAL,
         date TEXT
       )
@@ -60,6 +61,16 @@ class DatabaseService {
     await db.insert(tableProducts, {'id': 1, 'name': 'Coffee', 'price': 4.99, 'imageUrl': '', 'stock': 100});
     await db.insert(tableProducts, {'id': 2, 'name': 'Sandwich', 'price': 8.99, 'imageUrl': '', 'stock': 50});
     await db.insert(tableCustomers, {'id': 1, 'name': 'John Doe', 'phone': '1234567890', 'email': 'john@example.com'});
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE $tableOrders ADD COLUMN items TEXT');
+    }
+    if (oldVersion < 3) {
+      // Ensure items column is added and set default for existing rows
+      await db.execute('UPDATE $tableOrders SET items = "[]" WHERE items IS NULL');
+    }
   }
 
   // Product CRUD
@@ -132,7 +143,7 @@ class DatabaseService {
     final List<Map<String, dynamic>> maps = await db.query(tableOrders);
     return Future.wait(maps.map((map) async {
       final customer = await _getCustomerById(map['customerId']);
-      final itemsJson = map['items'] as String;
+      final itemsJson = map['items']?.toString() ?? '[]'; // Handle null items
       final List<dynamic> itemsList = jsonDecode(itemsJson);
       final items = itemsList.map((item) => CartItem(
             product: Product(
@@ -140,7 +151,7 @@ class DatabaseService {
               name: item['product']['name'],
               price: item['product']['price'].toDouble(),
               stock: item['product']['stock'],
-              imageUrl: item['product']['imageUrl'],
+              imageUrl: item['product']['imageUrl'] ?? '',
             ),
             quantity: item['quantity'],
           )).toList();
@@ -157,21 +168,33 @@ class DatabaseService {
   Future<Customer> _getCustomerById(int id) async {
     final db = await database;
     final maps = await db.query(tableCustomers, where: 'id = ?', whereArgs: [id]);
+    if (maps.isEmpty) {
+      throw Exception('Customer with id $id not found');
+    }
     return Customer.fromMap(maps.first);
   }
 
   Future<void> saveOrder(Order order) async {
-    final db = await database;
-    final itemsJson = jsonEncode(order.items.map((item) => {
-          'product': item.product.toMap(),
-          'quantity': item.quantity,
-        }).toList());
-    await db.insert(tableOrders, {
-      'id': order.id,
-      'customerId': order.customer.id,
-      'items': itemsJson,
-      'total': order.total,
-      'date': order.date.toIso8601String(),
-    });
+    try {
+      final db = await database;
+      final itemsJson = jsonEncode(order.items.map((item) => {
+            'product': item.product.toMap(),
+            'quantity': item.quantity,
+          }).toList());
+      await db.insert(
+        tableOrders,
+        {
+          'id': order.id,
+          'customerId': order.customer.id,
+          'items': itemsJson,
+          'total': order.total,
+          'date': order.date.toIso8601String(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      print('Error saving order: $e');
+      rethrow;
+    }
   }
 }

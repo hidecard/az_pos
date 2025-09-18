@@ -22,10 +22,6 @@ class HomeScreen extends StatelessWidget {
               return ProductCard(product: productController.products[index]);
             },
           )),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed('/cart'),
-        child: Icon(Icons.shopping_cart),
-      ),
     );
   }
 }

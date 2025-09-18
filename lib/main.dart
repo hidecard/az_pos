@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:badges/badges.dart' as badges;
 import 'controllers/product_controller.dart';
 import 'controllers/cart_controller.dart';
 import 'controllers/customer_controller.dart';
@@ -44,6 +45,7 @@ class MainScreen extends StatelessWidget {
   ];
 
   final RxInt _currentIndex = 0.obs;
+  final CartController cartController = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -56,16 +58,24 @@ class MainScreen extends StatelessWidget {
             selectedItemColor: Colors.blue,
             unselectedItemColor: Colors.grey,
             items: [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Products'),
-              BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Customers'),
-              BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Orders'),
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ပင်မစာမျက်နှာ'),
+              BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'ထုတ်ကုန်များ'),
+              BottomNavigationBarItem(icon: Icon(Icons.person), label: 'ဖောက်သည်များ'),
+              BottomNavigationBarItem(icon: Icon(Icons.history), label: 'ရောင်းချမှုမှတ်တမ်း'),
             ],
           )),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed('/cart'),
-        child: Icon(Icons.shopping_cart),
-      ),
+      floatingActionButton: Obx(() => badges.Badge(
+            badgeContent: Text(
+              cartController.cartItems.length.toString(),
+              style: TextStyle(color: Colors.white),
+            ),
+            showBadge: cartController.cartItems.isNotEmpty,
+            child: FloatingActionButton(
+              heroTag: 'cart_fab',
+              onPressed: () => Get.toNamed('/cart'),
+              child: Icon(Icons.shopping_cart),
+            ),
+          )),
     );
   }
 }
