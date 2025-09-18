@@ -16,7 +16,7 @@ class CartScreen extends StatelessWidget {
       body: Obx(() => Column(
         children: [
           Padding(
-            padding: EdgeInsets.all(10),
+            padding: EdgeInsets.all(16),
             child: DropdownButton<Customer>(
               hint: Text('Select Customer'),
               value: cartController.selectedCustomer.value,
@@ -35,6 +35,7 @@ class CartScreen extends StatelessWidget {
           ),
           Expanded(
             child: ListView.builder(
+              padding: EdgeInsets.symmetric(horizontal: 16),
               itemCount: cartController.cartItems.length,
               itemBuilder: (context, index) {
                 final item = cartController.cartItems[index];
@@ -67,7 +68,7 @@ class CartScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  trailing: Text('\$${item.total}'),
+                  trailing: Text('\$${item.total.toStringAsFixed(2)}'),
                 );
               },
             ),
@@ -76,11 +77,14 @@ class CartScreen extends StatelessWidget {
             padding: EdgeInsets.all(16),
             child: Column(
               children: [
-                Text('Total: \$${cartController.totalAmount}',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text(
+                  'Total: \$${cartController.totalAmount.toStringAsFixed(2)}',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => Get.to(() => CheckoutScreen()),
-                  child: Text('Checkout'),
+                  child: Text('Proceed to Checkout'),
                 ),
               ],
             ),

@@ -24,7 +24,15 @@ class MyApp extends StatelessWidget {
     Get.put(OrderController());
     return GetMaterialApp(
       title: 'POS System',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            textStyle: TextStyle(fontSize: 16),
+          ),
+        ),
+      ),
       home: MainScreen(),
       getPages: [
         GetPage(name: '/cart', page: () => CartScreen()),
@@ -58,10 +66,10 @@ class MainScreen extends StatelessWidget {
             selectedItemColor: Colors.blue,
             unselectedItemColor: Colors.grey,
             items: [
-              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'ပင်မစာမျက်နှာ'),
-              BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'ထုတ်ကုန်များ'),
-              BottomNavigationBarItem(icon: Icon(Icons.person), label: 'ဖောက်သည်များ'),
-              BottomNavigationBarItem(icon: Icon(Icons.history), label: 'ရောင်းချမှုမှတ်တမ်း'),
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+              BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Products'),
+              BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Customers'),
+              BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Orders'),
             ],
           )),
       floatingActionButton: Obx(() => badges.Badge(

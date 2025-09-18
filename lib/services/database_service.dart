@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/product.dart';
@@ -23,7 +24,7 @@ class DatabaseService {
     String path = join(await getDatabasesPath(), 'pos.db');
     return await openDatabase(
       path,
-      version: 3, // Incremented version
+      version: 6, // Incremented version
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -64,16 +65,20 @@ class DatabaseService {
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      await db.execute('ALTER TABLE $tableOrders ADD COLUMN items TEXT');
-    }
-    if (oldVersion < 3) {
-      // Ensure items column is added and set default for existing rows
-      await db.execute('UPDATE $tableOrders SET items = "[]" WHERE items IS NULL');
+    if (oldVersion < 6) {
+      await db.execute('DROP TABLE IF EXISTS $tableOrders');
+      await db.execute('''
+        CREATE TABLE $tableOrders(
+          id INTEGER PRIMARY KEY,
+          customerId INTEGER,
+          items TEXT,
+          total REAL,
+          date TEXT
+        )
+      ''');
     }
   }
 
-  // Product CRUD
   Future<List<Product>> getProducts() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(tableProducts);
@@ -110,7 +115,6 @@ class DatabaseService {
     );
   }
 
-  // Customer CRUD
   Future<List<Customer>> getCustomers() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(tableCustomers);
@@ -137,13 +141,15 @@ class DatabaseService {
     await db.delete(tableCustomers, where: 'id = ?', whereArgs: [id]);
   }
 
-  // Order History
   Future<List<Order>> getOrders() async {
     final db = await database;
     final List<Map<String, dynamic>> maps = await db.query(tableOrders);
-    return Future.wait(maps.map((map) async {
-      final customer = await _getCustomerById(map['customerId']);
-      final itemsJson = map['items']?.toString() ?? '[]'; // Handle null items
+    return await compute(_parseOrders, maps);
+  }
+
+  static List<Order> _parseOrders(List<Map<String, dynamic>> maps) {
+    return maps.map((map) {
+      final itemsJson = map['items']?.toString() ?? '[]';
       final List<dynamic> itemsList = jsonDecode(itemsJson);
       final items = itemsList.map((item) => CartItem(
             product: Product(
@@ -157,19 +163,24 @@ class DatabaseService {
           )).toList();
       return Order(
         id: map['id'],
-        customer: customer,
+        customer: Customer(
+          id: map['customerId'],
+          name: 'Unknown',
+          phone: '',
+          email: '',
+        ),
         items: items,
         total: map['total'].toDouble(),
         date: DateTime.parse(map['date']),
       );
-    }).toList());
+    }).toList();
   }
 
   Future<Customer> _getCustomerById(int id) async {
     final db = await database;
     final maps = await db.query(tableCustomers, where: 'id = ?', whereArgs: [id]);
     if (maps.isEmpty) {
-      throw Exception('Customer with id $id not found');
+      return Customer(id: id, name: 'Unknown', phone: '', email: '');
     }
     return Customer.fromMap(maps.first);
   }
@@ -196,5 +207,11 @@ class DatabaseService {
       print('Error saving order: $e');
       rethrow;
     }
+  }
+
+  Future<void> debugSchema() async {
+    final db = await database;
+    final result = await db.rawQuery('PRAGMA table_info($tableOrders)');
+    print('Orders table schema: $result');
   }
 }

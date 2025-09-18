@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/product.dart';
@@ -12,28 +13,51 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final CartController cartController = Get.find();
     return Card(
+      elevation: 4,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             child: product.imageUrl.isNotEmpty
-                ? Image.asset(
-                    product.imageUrl,
+                ? Image.file(
+                    File(product.imageUrl),
+                    width: double.infinity,
+                    height: 100,
+                    fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Icon(Icons.image, size: 50),
                   )
                 : Icon(Icons.image, size: 50),
           ),
-          Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
-          Text('\$${product.price}'),
-          Text('Stock: ${product.stock}', style: TextStyle(color: product.stock > 0 ? Colors.green : Colors.red)),
-          ElevatedButton(
-            onPressed: product.stock > 0
-                ? () {
-                    if (cartController.addToCart(CartItem(product: product))) {
-                      Get.snackbar('Added', '${product.name} added to cart');
+          Padding(
+            padding: EdgeInsets.all(8),
+            child: Text(
+              product.name,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text('\$${product.price.toStringAsFixed(2)}'),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              'Stock: ${product.stock}',
+              style: TextStyle(color: product.stock > 0 ? Colors.green : Colors.red),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(8),
+            child: ElevatedButton(
+              onPressed: product.stock > 0
+                  ? () {
+                      if (cartController.addToCart(CartItem(product: product))) {
+                        Get.snackbar('Success', '${product.name} added to cart');
+                      }
                     }
-                  }
-                : null,
-            child: Text('Add to Cart'),
+                  : null,
+              child: Text('Add to Cart'),
+            ),
           ),
         ],
       ),

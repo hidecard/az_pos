@@ -15,9 +15,15 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('POS System')),
       body: Obx(() => GridView.builder(
-            padding: EdgeInsets.all(10),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2),
+            padding: EdgeInsets.all(16),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.7,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
             itemCount: productController.products.length,
+            cacheExtent: 9999,
             itemBuilder: (context, index) {
               return ProductCard(product: productController.products[index]);
             },

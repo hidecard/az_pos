@@ -51,10 +51,12 @@ class ProductManagementScreen extends StatelessWidget {
                 Obx(() => imagePath.value.isNotEmpty
                     ? Image.file(File(imagePath.value), height: 100)
                     : Text('No image selected')),
+                SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _pickImage,
                   child: Text('Pick Image'),
                 ),
+                SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
                     if (nameController.text.isNotEmpty &&
@@ -73,7 +75,7 @@ class ProductManagementScreen extends StatelessWidget {
                       imagePath.value = '';
                       Get.snackbar('Success', 'Product added');
                     } else {
-                      Get.snackbar('Error', 'Fill all fields');
+                      Get.snackbar('Error', 'Please fill all fields');
                     }
                   },
                   child: Text('Add Product'),
@@ -83,6 +85,7 @@ class ProductManagementScreen extends StatelessWidget {
           ),
           Expanded(
             child: Obx(() => ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
                   itemCount: productController.products.length,
                   itemBuilder: (context, index) {
                     final product = productController.products[index];
@@ -91,7 +94,7 @@ class ProductManagementScreen extends StatelessWidget {
                           ? Image.file(File(product.imageUrl), width: 50, height: 50)
                           : Icon(Icons.image),
                       title: Text(product.name),
-                      subtitle: Text('Price: \$${product.price} | Stock: ${product.stock}'),
+                      subtitle: Text('Price: \$${product.price.toStringAsFixed(2)} | Stock: ${product.stock}'),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -172,7 +175,7 @@ class ProductManagementScreen extends StatelessWidget {
                 Get.back();
                 Get.snackbar('Success', 'Product updated');
               } else {
-                Get.snackbar('Error', 'Fill all fields');
+                Get.snackbar('Error', 'Please fill all fields');
               }
             },
             child: Text('Save'),

@@ -33,6 +33,7 @@ class CustomerManagementScreen extends StatelessWidget {
                   decoration: InputDecoration(labelText: 'Email'),
                   keyboardType: TextInputType.emailAddress,
                 ),
+                SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
                     if (nameController.text.isNotEmpty) {
@@ -57,6 +58,7 @@ class CustomerManagementScreen extends StatelessWidget {
           ),
           Expanded(
             child: Obx(() => ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
                   itemCount: customerController.customers.length,
                   itemBuilder: (context, index) {
                     final customer = customerController.customers[index];

@@ -10,18 +10,19 @@ class OrderHistoryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text('Order History')),
       body: Obx(() => ListView.builder(
+            padding: EdgeInsets.all(16),
             itemCount: orderController.orders.length,
             itemBuilder: (context, index) {
               final order = orderController.orders[index];
               return ExpansionTile(
                 title: Text('Order #${order.id} - ${order.customer.name}'),
-                subtitle: Text('Total: \$${order.total} | Date: ${order.date.toString()}'),
+                subtitle: Text('Total: \$${order.total.toStringAsFixed(2)} | Date: ${order.date.toString()}'),
                 children: order.items
                     .asMap()
                     .entries
                     .map((entry) => ListTile(
                           title: Text(entry.value.product.name),
-                          subtitle: Text('Qty: ${entry.value.quantity} | \$${entry.value.total}'),
+                          subtitle: Text('Quantity: ${entry.value.quantity} | \$${entry.value.total.toStringAsFixed(2)}'),
                         ))
                     .toList(),
               );
