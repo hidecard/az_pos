@@ -48,18 +48,27 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
           children: [
             ElevatedButton.icon(
               onPressed: () async {
-                final backupPath = await _dbService.backupDatabase(encryptBackup: _encryptBackup);
-                if (backupPath != null) {
-                  Get.snackbar(
-                    'Success',
-                    'Backup created at: $backupPath',
-                    snackPosition: SnackPosition.BOTTOM,
-                    duration: Duration(seconds: 3),
-                  );
-                } else {
+                try {
+                  final backupPath = await _dbService.backupDatabase(encryptBackup: _encryptBackup);
+                  if (backupPath != null) {
+                    Get.snackbar(
+                      'Success',
+                      'Backup created at: $backupPath',
+                      snackPosition: SnackPosition.BOTTOM,
+                      duration: Duration(seconds: 3),
+                    );
+                  } else {
+                    Get.snackbar(
+                      'Error',
+                      'Backup failed. Check permissions or try again.',
+                      snackPosition: SnackPosition.BOTTOM,
+                      duration: Duration(seconds: 5),
+                    );
+                  }
+                } catch (e) {
                   Get.snackbar(
                     'Error',
-                    'Backup failed. Check permissions or try again.',
+                    'Backup failed: $e',
                     snackPosition: SnackPosition.BOTTOM,
                     duration: Duration(seconds: 5),
                   );
@@ -72,14 +81,26 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
             SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () async {
-                final result = await FilePicker.platform.pickFiles(
-                  type: FileType.custom,
-                  allowedExtensions: ['db', 'enc'],
-                );
-                if (result != null && result.files.single.path != null) {
+                try {
+                  final result = await FilePicker.platform.pickFiles(
+                    type: FileType.custom,
+                    allowedExtensions: ['db', 'enc'],
+                    allowMultiple: false,
+                  );
+                  if (result == null || result.files.isEmpty || result.files.single.path == null) {
+                    Get.snackbar(
+                      'Error',
+                      'No valid file selected',
+                      snackPosition: SnackPosition.BOTTOM,
+                      duration: Duration(seconds: 3),
+                    );
+                    return;
+                  }
+
+                  final filePath = result.files.single.path!;
                   final bool isEncrypted = result.files.single.extension == 'enc';
                   final success = await _dbService.restoreDatabase(
-                    result.files.single.path!,
+                    filePath,
                     isEncrypted: isEncrypted,
                   );
                   if (success) {
@@ -89,23 +110,25 @@ class _BackupRestoreScreenState extends State<BackupRestoreScreen> {
                       snackPosition: SnackPosition.BOTTOM,
                       duration: Duration(seconds: 3),
                     );
+                    // Reload data
                     Get.find<ProductController>().loadProducts();
                     Get.find<CustomerController>().loadCustomers();
                     Get.find<OrderController>().loadOrders();
                   } else {
                     Get.snackbar(
                       'Error',
-                      'Restore failed. Check file or permissions.',
+                      'Restore failed. Ensure the file is valid and permissions are granted.',
                       snackPosition: SnackPosition.BOTTOM,
                       duration: Duration(seconds: 5),
                     );
                   }
-                } else {
+                } catch (e) {
+                  print('Restore error: $e');
                   Get.snackbar(
                     'Error',
-                    'No file selected',
+                    'Restore failed: $e',
                     snackPosition: SnackPosition.BOTTOM,
-                    duration: Duration(seconds: 3),
+                    duration: Duration(seconds: 5),
                   );
                 }
               },

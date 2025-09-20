@@ -306,12 +306,54 @@ class DatabaseService {
   // Restore method: Use file_picker to select backup file
   Future<bool> restoreDatabase(String backupFilePath, {bool isEncrypted = false}) async {
     try {
+      // Request read permission for the backup file
+      if (Platform.isAndroid) {
+        bool isAndroid11OrAbove = await _getAndroidApiLevel() >= 30;
+        if (isAndroid11OrAbove) {
+          final status = await Permission.manageExternalStorage.request();
+          if (status.isDenied || status.isPermanentlyDenied) {
+            if (status.isPermanentlyDenied) {
+              await openAppSettings();
+              Get.snackbar(
+                'Error',
+                'Please grant "All files access" permission in Settings',
+                snackPosition: SnackPosition.BOTTOM,
+                duration: Duration(seconds: 5),
+              );
+              return false;
+            }
+            throw Exception('Manage external storage permission denied');
+          }
+        } else {
+          final status = await Permission.storage.request();
+          if (status.isDenied || status.isPermanentlyDenied) {
+            if (status.isPermanentlyDenied) {
+              await openAppSettings();
+              Get.snackbar(
+                'Error',
+                'Please grant storage permission in Settings',
+                snackPosition: SnackPosition.BOTTOM,
+                duration: Duration(seconds: 5),
+              );
+              return false;
+            }
+            throw Exception('Storage permission denied');
+          }
+        }
+      }
+
       final dbPath = await getDatabasesPath();
       final targetFile = File(join(dbPath, dbName));
       File sourceFile = File(backupFilePath);
 
       if (!await sourceFile.exists()) {
-        throw Exception('Backup file not found');
+        throw Exception('Backup file not found or inaccessible');
+      }
+
+      // Validate file size
+      final fileSize = await sourceFile.length();
+      if (fileSize == 0) {
+        throw Exception('Backup file is empty');
       }
 
       // Decrypt if needed
@@ -320,10 +362,22 @@ class DatabaseService {
         final iv = encrypt.IV.fromUtf8(ivString); // 16 bytes
         final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
         final encryptedContent = await sourceFile.readAsBytes();
-        final decryptedBytes = encrypter.decryptBytes(encrypt.Encrypted(encryptedContent), iv: iv);
-        final tempFile = File(join(dbPath, 'temp_restore.db'));
-        await tempFile.writeAsBytes(decryptedBytes);
-        sourceFile = tempFile;
+        try {
+          final decryptedBytes = encrypter.decryptBytes(encrypt.Encrypted(encryptedContent), iv: iv);
+          final tempFile = File(join(dbPath, 'temp_restore.db'));
+          await tempFile.writeAsBytes(decryptedBytes);
+          sourceFile = tempFile;
+        } catch (e) {
+          throw Exception('Decryption failed: Invalid encryption key or corrupted file');
+        }
+      }
+
+      // Validate database file before copying
+      try {
+        final tempDb = await openDatabase(sourceFile.path, readOnly: true);
+        await tempDb.close();
+      } catch (e) {
+        throw Exception('Invalid database file: $e');
       }
 
       // Close current DB
