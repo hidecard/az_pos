@@ -60,7 +60,7 @@ class ProductCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
+                      color: Colors.indigo,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -138,7 +138,7 @@ class ProductCard extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
                           ),
-                          backgroundColor: Theme.of(context).primaryColor,
+                          backgroundColor: Colors.indigo,
                           foregroundColor: Colors.white,
                           textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                           elevation: 3,
