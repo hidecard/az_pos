@@ -9,6 +9,7 @@ class CartController extends GetxController {
   var cartItems = <CartItem>[].obs;
   var selectedCustomer = Rx<Customer?>(null);
   var totalAmount = 0.0.obs;
+  var isLoading = false.obs; // Added for loading state
 
   bool addToCart(CartItem item) {
     final existingItem = cartItems.firstWhereOrNull((i) => i.product.id == item.product.id);
@@ -51,22 +52,24 @@ class CartController extends GetxController {
     if (cartItems.isEmpty || selectedCustomer.value == null) {
       throw Exception('Cart is empty or no customer selected');
     }
-
-    for (var item in cartItems) {
-      await _dbService.updateStock(item.product.id, item.product.stock - item.quantity);
+    isLoading.value = true; // Set loading
+    try {
+      for (var item in cartItems) {
+        await _dbService.updateStock(item.product.id, item.product.stock - item.quantity);
+      }
+      final order = Order(
+        id: DateTime.now().millisecondsSinceEpoch,
+        customer: selectedCustomer.value!,
+        items: cartItems.toList(),
+        total: totalAmount.value,
+        date: DateTime.now(),
+      );
+      await _dbService.saveOrder(order);
+      cartItems.clear();
+      selectedCustomer.value = null;
+      totalAmount.value = 0.0;
+    } finally {
+      isLoading.value = false; // Reset loading
     }
-
-    final order = Order(
-      id: DateTime.now().millisecondsSinceEpoch,
-      customer: selectedCustomer.value!,
-      items: cartItems.toList(),
-      total: totalAmount.value,
-      date: DateTime.now(),
-    );
-
-    await _dbService.saveOrder(order);
-    cartItems.clear();
-    selectedCustomer.value = null;
-    totalAmount.value = 0.0;
   }
 }
