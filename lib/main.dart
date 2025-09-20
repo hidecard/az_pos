@@ -68,7 +68,7 @@ class MainScreen extends StatelessWidget {
             currentIndex: _currentIndex.value,
             onTap: (index) => _currentIndex.value = index,
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: Colors.blue,
+            selectedItemColor: Theme.of(context).primaryColor,
             unselectedItemColor: Colors.grey,
             items: [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

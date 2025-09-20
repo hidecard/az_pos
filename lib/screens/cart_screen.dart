@@ -146,7 +146,7 @@ class CartScreen extends StatelessWidget {
                             ],
                           ),
                           trailing: Text(
-                            '\$${item.total.toStringAsFixed(2)}',
+                            '${item.total.toStringAsFixed(2)} MMK',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -184,7 +184,7 @@ class CartScreen extends StatelessWidget {
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      '\$${cartController.totalAmount.toStringAsFixed(2)}',
+                      '${cartController.totalAmount.toStringAsFixed(2)} MMK',
                       style: Theme.of(context)
                           .textTheme
                           .titleLarge

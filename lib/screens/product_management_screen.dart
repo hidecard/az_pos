@@ -134,7 +134,7 @@ class ProductManagementScreen extends StatelessWidget {
                               : Icon(Icons.image),
                           title: Text(product.name, style: GoogleFonts.roboto()),
                           subtitle: Text(
-                            'Price: ${product.price} MMK, Stock: ${product.stock}',
+                            'Price: ${product.price.toStringAsFixed(2)} MMK, Stock: ${product.stock}',
                             style: GoogleFonts.roboto(),
                           ),
                           trailing: IconButton(

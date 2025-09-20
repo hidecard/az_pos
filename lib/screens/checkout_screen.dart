@@ -63,7 +63,7 @@ class CheckoutScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        '\$${cartController.totalAmount.toStringAsFixed(2)}',
+                        '${cartController.totalAmount.toStringAsFixed(2)} MMK',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).primaryColor,
@@ -113,7 +113,7 @@ class CheckoutScreen extends StatelessWidget {
                               style: TextStyle(color: Colors.grey.shade600),
                             ),
                             trailing: Text(
-                              '\$${item.total.toStringAsFixed(2)}',
+                              '${item.total.toStringAsFixed(2)} MMK',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,

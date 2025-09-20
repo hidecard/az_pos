@@ -92,7 +92,7 @@ class OrderDetailScreen extends StatelessWidget {
                   style: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  'Customer: Unknown',
+                  'Customer: ${order.customer.name ?? 'Unknown'}',
                   style: GoogleFonts.roboto(fontSize: 16),
                 ),
                 Text(
