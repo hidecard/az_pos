@@ -5,7 +5,6 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -14,7 +13,6 @@ import '../models/customer.dart';
 import '../models/order.dart';
 import '../models/cart_item.dart';
 import 'dart:convert';
-import 'dart:typed_data';
 
 class DatabaseService {
   static Database? _database;
@@ -22,8 +20,6 @@ class DatabaseService {
   static const String tableCustomers = 'customers';
   static const String tableOrders = 'orders';
   static const String dbName = 'pos.db';
-  static const String secretKey = 'MySecretPOSKey2025!@#\$%^&*()_+-='; // Exactly 32 bytes
-  static const String ivString = 'My16ByteIVString'; // Exactly 16 bytes for AES
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -210,13 +206,13 @@ class DatabaseService {
       );
     } catch (e) {
       print('Error saving order: $e');
-      Get.snackbar('Error', 'Failed to save order: $e');
+      Get.snackbar('အမှားဖြစ်ပေါ်ခဲ့သည်', 'အော်ဒါသိမ်းဆည်းမှုမအောင်မြင်ပါ: $e');
       rethrow;
     }
   }
 
   // Backup method: Use file_picker to save to user-selected file
-  Future<String?> backupDatabase({bool encryptBackup = false}) async {
+  Future<String?> backupDatabase() async {
     try {
       // Request storage permissions
       if (Platform.isAndroid) {
@@ -227,8 +223,8 @@ class DatabaseService {
             if (status.isPermanentlyDenied) {
               await openAppSettings();
               Get.snackbar(
-                'Error',
-                'Please grant "All files access" permission in Settings',
+                'အမှားဖြစ်ပေါ်ခဲ့သည်', // Error
+                'ကျေးဇူးပြု၍ ဆက်တင်များတွင် "ဖိုင်အားလုံးကိုဝင်ရောက်ခွင့်" ခွင့်ပြုချက်ပေးပါ။', // Please grant "All files access" permission
                 snackPosition: SnackPosition.BOTTOM,
                 duration: Duration(seconds: 5),
               );
@@ -242,8 +238,8 @@ class DatabaseService {
             if (status.isPermanentlyDenied) {
               await openAppSettings();
               Get.snackbar(
-                'Error',
-                'Please grant storage permission in Settings',
+                'အမှားဖြစ်ပေါ်ခဲ့သည်', // Error
+                'ကျေးဇူးပြု၍ ဆက်တင်များတွင် သိုလှောင်မှုခွင့်ပြုချက်ပေးပါ။', // Please grant storage permission
                 snackPosition: SnackPosition.BOTTOM,
                 duration: Duration(seconds: 5),
               );
@@ -268,43 +264,31 @@ class DatabaseService {
       }
 
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final suggestedFileName = encryptBackup ? 'pos_backup_$timestamp.enc' : 'pos_backup_$timestamp.db';
-
-      // Prepare bytes for saving
-      Uint8List bytesToSave;
-      if (encryptBackup) {
-        final key = encrypt.Key.fromUtf8(secretKey); // 32 bytes
-        final iv = encrypt.IV.fromUtf8(ivString); // 16 bytes
-        final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
-        final encrypted = encrypter.encryptBytes(fileBytes, iv: iv);
-        bytesToSave = encrypted.bytes;
-      } else {
-        bytesToSave = fileBytes;
-      }
+      final suggestedFileName = 'pos_backup_$timestamp.db';
 
       // Use file_picker to save file
       final result = await FilePicker.platform.saveFile(
         fileName: suggestedFileName,
-        bytes: bytesToSave,
+        bytes: fileBytes,
         type: FileType.custom,
-        allowedExtensions: encryptBackup ? ['enc'] : ['db'],
+        allowedExtensions: ['db'],
       );
 
       if (result == null) {
-        Get.snackbar('Error', 'No file location selected');
+        Get.snackbar('အမှားဖြစ်ပေါ်ခဲ့သည်', 'ဖိုင်တည်နေရာမရွေးချယ်ထားပါ'); // No file location selected
         return null;
       }
 
       return result;
     } catch (e) {
       print('Backup error: $e');
-      Get.snackbar('Error', 'Backup failed: $e');
+      Get.snackbar('အမှားဖြစ်ပေါ်ခဲ့သည်', 'အရန်သိမ်းဆည်းမှုမအောင်မြင်ပါ: $e');
       return null;
     }
   }
 
   // Restore method: Use file_picker to select backup file
-  Future<bool> restoreDatabase(String backupFilePath, {bool isEncrypted = false}) async {
+  Future<bool> restoreDatabase(String backupFilePath) async {
     try {
       // Request read permission for the backup file
       if (Platform.isAndroid) {
@@ -315,8 +299,8 @@ class DatabaseService {
             if (status.isPermanentlyDenied) {
               await openAppSettings();
               Get.snackbar(
-                'Error',
-                'Please grant "All files access" permission in Settings',
+                'အမှားဖြစ်ပေါ်ခဲ့သည်', // Error
+                'ကျေးဇူးပြု၍ ဆက်တင်များတွင် "ဖိုင်အားလုံးကိုဝင်ရောက်ခွင့်" ခွင့်ပြုချက်ပေးပါ။', // Please grant "All files access" permission
                 snackPosition: SnackPosition.BOTTOM,
                 duration: Duration(seconds: 5),
               );
@@ -330,8 +314,8 @@ class DatabaseService {
             if (status.isPermanentlyDenied) {
               await openAppSettings();
               Get.snackbar(
-                'Error',
-                'Please grant storage permission in Settings',
+                'အမှားဖြစ်ပေါ်ခဲ့သည်', // Error
+                'ကျေးဇူးပြု၍ ဆက်တင်များတွင် သိုလှောင်မှုခွင့်ပြုချက်ပေးပါ။', // Please grant storage permission
                 snackPosition: SnackPosition.BOTTOM,
                 duration: Duration(seconds: 5),
               );
@@ -344,40 +328,32 @@ class DatabaseService {
 
       final dbPath = await getDatabasesPath();
       final targetFile = File(join(dbPath, dbName));
-      File sourceFile = File(backupFilePath);
+      final sourceFile = File(backupFilePath);
 
       if (!await sourceFile.exists()) {
-        throw Exception('Backup file not found or inaccessible');
+        throw Exception('အရန်ဖိုင်မတွေ့ပါ သို့မဟုတ် ဝင်ရောက်ခွင့်မရှိပါ'); // Backup file not found or inaccessible
       }
 
       // Validate file size
       final fileSize = await sourceFile.length();
       if (fileSize == 0) {
-        throw Exception('Backup file is empty');
-      }
-
-      // Decrypt if needed
-      if (isEncrypted) {
-        final key = encrypt.Key.fromUtf8(secretKey); // 32 bytes
-        final iv = encrypt.IV.fromUtf8(ivString); // 16 bytes
-        final encrypter = encrypt.Encrypter(encrypt.AES(key, mode: encrypt.AESMode.cbc));
-        final encryptedContent = await sourceFile.readAsBytes();
-        try {
-          final decryptedBytes = encrypter.decryptBytes(encrypt.Encrypted(encryptedContent), iv: iv);
-          final tempFile = File(join(dbPath, 'temp_restore.db'));
-          await tempFile.writeAsBytes(decryptedBytes);
-          sourceFile = tempFile;
-        } catch (e) {
-          throw Exception('Decryption failed: Invalid encryption key or corrupted file');
-        }
+        throw Exception('အရန်ဖိုင်သည်ဗလာဖြစ်နေပါသည်'); // Backup file is empty
       }
 
       // Validate database file before copying
       try {
         final tempDb = await openDatabase(sourceFile.path, readOnly: true);
+        // Check if tables exist
+        final tables = await tempDb.rawQuery("SELECT name FROM sqlite_master WHERE type='table'");
+        if (!tables.any((table) => table['name'] == tableProducts) ||
+            !tables.any((table) => table['name'] == tableCustomers) ||
+            !tables.any((table) => table['name'] == tableOrders)) {
+          await tempDb.close();
+          throw Exception('ဖိုင်သည်မဖြစ်မနေဒေတာဘေ့စ်ဖိုင်မဟုတ်ပါ'); // Invalid database file
+        }
         await tempDb.close();
       } catch (e) {
-        throw Exception('Invalid database file: $e');
+        throw Exception('မဖြစ်မနေဒေတာဘေ့စ်ဖိုင်: $e'); // Invalid database file
       }
 
       // Close current DB
@@ -389,17 +365,12 @@ class DatabaseService {
       // Replace DB
       await sourceFile.copy(targetFile.path);
 
-      // Clean up temp file
-      if (isEncrypted && await sourceFile.exists()) {
-        await sourceFile.delete();
-      }
-
       // Reopen DB
       _database = await _initDB();
       return true;
     } catch (e) {
       print('Restore error: $e');
-      Get.snackbar('Error', 'Restore failed: $e');
+      Get.snackbar('အမှားဖြစ်ပေါ်ခဲ့သည်', 'ပြန်လည်ရယူမှုမအောင်မြင်ပါ: $e');
       return false;
     }
   }
