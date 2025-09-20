@@ -40,7 +40,7 @@ class OrderHistoryScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Customer: Unknown',
+                      'Customer: ${order.customer.name ?? 'Unknown'}',
                       style: GoogleFonts.roboto(),
                     ),
                     Text(
