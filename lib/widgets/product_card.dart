@@ -119,7 +119,7 @@ class ProductCard extends StatelessWidget {
                             Get.snackbar(
                               'Success',
                               '${product.name} added to cart',
-                              snackPosition: SnackPosition.BOTTOM,
+                              snackPosition: SnackPosition.TOP,
                               backgroundColor: Colors.green,
                               colorText: Colors.white,
                             );
@@ -127,7 +127,7 @@ class ProductCard extends StatelessWidget {
                             Get.snackbar(
                               'Error',
                               'Not enough stock',
-                              snackPosition: SnackPosition.BOTTOM,
+                              snackPosition: SnackPosition.TOP,
                               backgroundColor: Colors.red,
                               colorText: Colors.white,
                             );
