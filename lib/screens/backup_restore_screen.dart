@@ -47,8 +47,8 @@ class BackupRestoreScreen extends StatelessWidget {
                         Get.snackbar(
                           'Error',
                           'Backup failed. Check permissions and try again.',
-                          snackPosition: SnackPosition.BOTTOM,
-                          duration: Duration(seconds: 5),
+                          snackPosition: SnackPosition.TOP,
+                          duration: Duration(seconds: 3),
                         );
                       }
                     } catch (e) {
@@ -56,8 +56,8 @@ class BackupRestoreScreen extends StatelessWidget {
                       Get.snackbar(
                         'Error',
                         'Backup failed: $e',
-                        snackPosition: SnackPosition.BOTTOM,
-                        duration: Duration(seconds: 5),
+                        snackPosition: SnackPosition.TOP,
+                        duration: Duration(seconds: 3),
                       );
                     }
                   },
@@ -82,7 +82,7 @@ class BackupRestoreScreen extends StatelessWidget {
                         Get.snackbar(
                           'Error',
                           'No valid file selected',
-                          snackPosition: SnackPosition.BOTTOM,
+                          snackPosition: SnackPosition.TOP,
                           duration: Duration(seconds: 3),
                         );
                         return;
@@ -94,8 +94,8 @@ class BackupRestoreScreen extends StatelessWidget {
                         Get.snackbar(
                           'Error',
                           'Selected file must be a .db file',
-                          snackPosition: SnackPosition.BOTTOM,
-                          duration: Duration(seconds: 5),
+                          snackPosition: SnackPosition.TOP,
+                          duration: Duration(seconds: 3),
                         );
                         return;
                       }
@@ -105,7 +105,7 @@ class BackupRestoreScreen extends StatelessWidget {
                         Get.snackbar(
                           'Success',
                           'Database restored successfully. App data will reload.',
-                          snackPosition: SnackPosition.BOTTOM,
+                          snackPosition: SnackPosition.TOP,
                           duration: Duration(seconds: 3),
                         );
                         Get.find<ProductController>().loadProducts();
@@ -115,8 +115,8 @@ class BackupRestoreScreen extends StatelessWidget {
                         Get.snackbar(
                           'Error',
                           'Restore failed. Check file validity and permissions.',
-                          snackPosition: SnackPosition.BOTTOM,
-                          duration: Duration(seconds: 5),
+                          snackPosition: SnackPosition.TOP,
+                          duration: Duration(seconds: 3),
                         );
                       }
                     } catch (e) {
@@ -124,8 +124,8 @@ class BackupRestoreScreen extends StatelessWidget {
                       Get.snackbar(
                         'Error',
                         'Restore failed: $e',
-                        snackPosition: SnackPosition.BOTTOM,
-                        duration: Duration(seconds: 5),
+                        snackPosition: SnackPosition.TOP,
+                        duration: Duration(seconds: 3),
                       );
                     }
                   },
