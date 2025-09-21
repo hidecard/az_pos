@@ -183,7 +183,7 @@ class DatabaseService {
       } else {
         customer = Customer(
           id: map['customerId'] as int,
-          name: 'Unknown',
+          name: 'Guest',
           phone: '',
           email: '',
         );
