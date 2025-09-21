@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
-import '../controllers/order_controller.dart'; // Add this import
-import '../models/customer.dart'; // Add this import
-import '../services/database_service.dart'; // Add this import for DatabaseService
-import '../main.dart'; // Import main.dart to access MainScreen
+import '../controllers/order_controller.dart';
+import '../models/customer.dart';
+import '../services/database_service.dart';
+import '../main.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'package:intl/intl.dart';
 
 class CheckoutScreen extends StatelessWidget {
   final CartController cartController = Get.find();
@@ -153,13 +157,100 @@ class CheckoutScreen extends StatelessWidget {
                                 email: '',
                               );
                             }
-                            // Save the guest customer to the database to avoid unknown in history
+
                             final dbService = DatabaseService();
                             await dbService.addCustomer(cartController.selectedCustomer.value!);
+
+                            final itemsToPrint = List.from(cartController.cartItems);
+                            final totalAmount = cartController.totalAmount;
+
+                            // Generate Invoice PDF
+                            final pdf = pw.Document();
+                            final now = DateTime.now();
+                            final formatter = DateFormat('yyyy-MM-dd HH:mm');
+
+                            pdf.addPage(pw.Page(
+                              pageFormat: PdfPageFormat.a4,
+                              build: (pw.Context context) {
+                                return pw.Column(
+                                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                  children: [
+                                    // Header
+                                    pw.Text('My Shop',
+                                        style: pw.TextStyle(
+                                            fontSize: 28, fontWeight: pw.FontWeight.bold)),
+                                    pw.SizedBox(height: 8),
+                                    pw.Text('Invoice',
+                                        style: pw.TextStyle(
+                                            fontSize: 20, fontWeight: pw.FontWeight.bold)),
+                                    pw.SizedBox(height: 16),
+                                    // Subheader
+                                    pw.Row(
+                                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        pw.Column(
+                                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                          children: [
+                                            pw.Text('Invoice No: ${now.millisecondsSinceEpoch}'),
+                                            pw.Text('Date: ${formatter.format(now)}'),
+                                          ],
+                                        ),
+                                        pw.Column(
+                                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                          children: [
+                                            pw.Text('Customer: ${cartController.selectedCustomer.value?.name ?? 'Guest'}'),
+                                            pw.Text('Phone: ${cartController.selectedCustomer.value?.phone ?? '-'}'),
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                    pw.SizedBox(height: 16),
+                                    // Table
+                                    pw.Table.fromTextArray(
+                                      headers: ['Product', 'Qty', 'Price', 'Total'],
+                                      data: itemsToPrint.map((item) => [
+                                        item.product.name,
+                                        item.quantity.toString(),
+                                        item.product.price.toStringAsFixed(2),
+                                        item.total.toStringAsFixed(2)
+                                      ]).toList(),
+                                      headerStyle: pw.TextStyle(
+                                          fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+                                      headerDecoration: pw.BoxDecoration(color: PdfColors.blue),
+                                      cellPadding: pw.EdgeInsets.all(6),
+                                    ),
+                                    pw.Divider(),
+                                    pw.SizedBox(height: 8),
+                                    pw.Align(
+                                      alignment: pw.Alignment.centerRight,
+                                      child: pw.Text(
+                                        'Total: ${totalAmount.toStringAsFixed(2)} MMK',
+                                        style: pw.TextStyle(
+                                            fontSize: 18, fontWeight: pw.FontWeight.bold),
+                                      ),
+                                    ),
+                                    pw.SizedBox(height: 16),
+                                    // Footer
+                                    pw.Center(
+                                      child: pw.Text(
+                                        'Thank you for your purchase!',
+                                        style: pw.TextStyle(
+                                            fontSize: 16, fontWeight: pw.FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ));
+
+                            await Printing.layoutPdf(onLayout: (format) => pdf.save());
+
                             await cartController.checkout();
                             final orderController = Get.find<OrderController>();
                             await orderController.loadOrders();
+
                             Get.offAll(() => MainScreen());
+
                             Get.snackbar(
                               'Success',
                               'Order completed',
@@ -182,7 +273,7 @@ class CheckoutScreen extends StatelessWidget {
                             );
                           }
                         },
-                  child: cartController.isLoading.value == true
+                  child: cartController.isLoading.value
                       ? CircularProgressIndicator(color: Colors.white)
                       : Text(
                           'Pay & Complete Order',
