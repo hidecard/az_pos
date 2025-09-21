@@ -152,37 +152,52 @@ class DatabaseService {
   // Order History
   Future<List<Order>> getOrders() async {
     final db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(tableOrders);
-    return await compute(_parseOrders, maps);
-  }
-
-  static List<Order> _parseOrders(List<Map<String, dynamic>> maps) {
-    return maps.map((map) {
+    final List<Map<String, dynamic>> orderMaps = await db.query(tableOrders);
+    
+    List<Order> orders = [];
+    for (var map in orderMaps) {
+      // Parse items
       final itemsJson = map['items']?.toString() ?? '[]';
       final List<dynamic> itemsList = jsonDecode(itemsJson);
       final items = itemsList.map((item) => CartItem(
-            product: Product(
-              id: item['product']['id'],
-              name: item['product']['name'],
-              price: item['product']['price'].toDouble(),
-              stock: item['product']['stock'],
-              imageUrl: item['product']['imageUrl'] ?? '',
-            ),
-            quantity: item['quantity'],
-          )).toList();
-      return Order(
-        id: map['id'],
-        customer: Customer(
-          id: map['customerId'],
-          name: 'Unknown',
+        product: Product(
+          id: item['product']['id'],
+          name: item['product']['name'],
+          price: item['product']['price'].toDouble(),
+          stock: item['product']['stock'],
+          imageUrl: item['product']['imageUrl'] ?? '',
+        ),
+        quantity: item['quantity'],
+      )).toList();
+
+      // Fetch customer
+      final customerMaps = await db.query(
+        tableCustomers,
+        where: 'id = ?',
+        whereArgs: [map['customerId']],
+      );
+      
+      Customer customer;
+      if (customerMaps.isNotEmpty) {
+        customer = Customer.fromMap(customerMaps.first);
+      } else {
+        customer = Customer(
+          id: map['customerId'] as int,
+          name: 'Guest',
           phone: '',
           email: '',
-        ),
+        );
+      }
+
+      orders.add(Order(
+        id: map['id'],
+        customer: customer,
         items: items,
         total: map['total'].toDouble(),
         date: DateTime.parse(map['date']),
-      );
-    }).toList();
+      ));
+    }
+    return orders;
   }
 
   Future<void> saveOrder(Order order) async {

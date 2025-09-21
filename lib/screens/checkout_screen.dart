@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
 import 'home_screen.dart';
+import '../models/customer.dart'; // Add this import
 
 class CheckoutScreen extends StatelessWidget {
   final CartController cartController = Get.find();
@@ -49,7 +50,7 @@ class CheckoutScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 8),
                       Text(
-                        cartController.selectedCustomer.value?.name ?? 'None',
+                        cartController.selectedCustomer.value?.name ?? 'Guest',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.grey.shade700,
                         ),
@@ -138,11 +139,18 @@ class CheckoutScreen extends StatelessWidget {
                     foregroundColor: Colors.white,
                     elevation: 2,
                   ),
-                  onPressed: cartController.cartItems.isEmpty ||
-                          cartController.selectedCustomer.value == null
+                  onPressed: cartController.cartItems.isEmpty
                       ? null
                       : () async {
                           try {
+                            if (cartController.selectedCustomer.value == null) {
+                              cartController.selectedCustomer.value = Customer(
+                                id: 0,
+                                name: 'Guest',
+                                phone: '',
+                                email: '',
+                              );
+                            }
                             await cartController.checkout();
                             Get.offAll(() => HomeScreen());
                             Get.snackbar(
