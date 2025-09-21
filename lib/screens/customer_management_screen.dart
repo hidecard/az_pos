@@ -11,6 +11,102 @@ class CustomerManagementScreen extends StatelessWidget {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
 
+  // Show edit dialog
+  void _showEditDialog(Customer customer) {
+    final editFormKey = GlobalKey<FormState>();
+    final editNameController = TextEditingController(text: customer.name);
+    final editPhoneController = TextEditingController(text: customer.phone);
+    final editEmailController = TextEditingController(text: customer.email);
+
+    Get.dialog(
+      StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(
+              'Edit Customer',
+              style: GoogleFonts.roboto(fontWeight: FontWeight.bold),
+            ),
+            content: SingleChildScrollView(
+              child: Form(
+                key: editFormKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: editNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Name',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      style: GoogleFonts.roboto(),
+                      validator: (value) => value!.isEmpty ? 'Enter name' : null,
+                    ),
+                    SizedBox(height: 12),
+                    TextFormField(
+                      controller: editPhoneController,
+                      decoration: InputDecoration(
+                        labelText: 'Phone',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      style: GoogleFonts.roboto(),
+                      validator: (value) => value!.isEmpty ? 'Enter phone number' : null,
+                    ),
+                    SizedBox(height: 12),
+                    TextFormField(
+                      controller: editEmailController,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      style: GoogleFonts.roboto(),
+                      validator: (value) => value!.isEmpty ? 'Enter email' : null,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (editFormKey.currentState!.validate()) {
+                    customerController.updateCustomer(Customer(
+                      id: customer.id,
+                      name: editNameController.text,
+                      phone: editPhoneController.text,
+                      email: editEmailController.text,
+                    ));
+
+                    // Refresh UI
+                    customerController.customers.refresh();
+
+                    // Close dialog
+                    if (Get.isDialogOpen ?? false) Get.back();
+
+                    Get.snackbar(
+                      'Success',
+                      'Customer updated',
+                      snackPosition: SnackPosition.TOP,
+                    );
+                  }
+                },
+                child: Text(
+                  'Update',
+                  style: GoogleFonts.roboto(fontSize: 16),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,6 +120,7 @@ class CustomerManagementScreen extends StatelessWidget {
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
+            // Add Customer Form
             Card(
               child: Padding(
                 padding: EdgeInsets.all(16),
@@ -78,7 +175,7 @@ class CustomerManagementScreen extends StatelessWidget {
                             Get.snackbar(
                               'Success',
                               'Customer added',
-                              snackPosition: SnackPosition.BOTTOM,
+                              snackPosition: SnackPosition.TOP,
                             );
                           }
                         },
@@ -95,7 +192,10 @@ class CustomerManagementScreen extends StatelessWidget {
                 ),
               ),
             ),
+
             SizedBox(height: 16),
+
+            // Customer List
             Expanded(
               child: Obx(() => ListView.builder(
                     itemCount: customerController.customers.length,
@@ -108,16 +208,25 @@ class CustomerManagementScreen extends StatelessWidget {
                             'Phone: ${customer.phone}, Email: ${customer.email}',
                             style: GoogleFonts.roboto(),
                           ),
-                          trailing: IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () {
-                              customerController.deleteCustomer(customer.id);
-                              Get.snackbar(
-                                'Success',
-                                'Customer deleted',
-                                snackPosition: SnackPosition.BOTTOM,
-                              );
-                            },
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () => _showEditDialog(customer),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () {
+                                  customerController.deleteCustomer(customer.id);
+                                  Get.snackbar(
+                                    'Success',
+                                    'Customer deleted',
+                                    snackPosition: SnackPosition.TOP,
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       );

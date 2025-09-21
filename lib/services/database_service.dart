@@ -183,7 +183,7 @@ class DatabaseService {
       } else {
         customer = Customer(
           id: map['customerId'] as int,
-          name: 'Guest',
+          name: 'Unknown',
           phone: '',
           email: '',
         );
@@ -197,6 +197,8 @@ class DatabaseService {
         date: DateTime.parse(map['date']),
       ));
     }
+    // Sort orders by date descending (latest first)
+    orders.sort((a, b) => b.date.compareTo(a.date));
     return orders;
   }
 
@@ -220,7 +222,7 @@ class DatabaseService {
       );
     } catch (e) {
       print('Error saving order: $e');
-      Get.snackbar('အမှားဖြစ်ပေါ်ခဲ့သည်', 'အော်ဒါသိမ်းဆည်းမှုမအောင်မြင်ပါ: $e');
+      Get.snackbar('Error', 'Failed to save order: $e');
       rethrow;
     }
   }
@@ -237,8 +239,8 @@ class DatabaseService {
             if (status.isPermanentlyDenied) {
               await openAppSettings();
               Get.snackbar(
-                'အမှားဖြစ်ပေါ်ခဲ့သည်', // Error
-                'ကျေးဇူးပြု၍ ဆက်တင်များတွင် "ဖိုင်အားလုံးကိုဝင်ရောက်ခွင့်" ခွင့်ပြုချက်ပေးပါ။', // Please grant "All files access" permission
+                'Error', // Error
+                'Please grant "All files access" permission in settings.', // Please grant "All files access" permission
                 snackPosition: SnackPosition.BOTTOM,
                 duration: Duration(seconds: 5),
               );
@@ -252,8 +254,8 @@ class DatabaseService {
             if (status.isPermanentlyDenied) {
               await openAppSettings();
               Get.snackbar(
-                'အမှားဖြစ်ပေါ်ခဲ့သည်', // Error
-                'ကျေးဇူးပြု၍ ဆက်တင်များတွင် သိုလှောင်မှုခွင့်ပြုချက်ပေးပါ။', // Please grant storage permission
+                'Error', // Error
+                'Please grant storage permission in settings.', // Please grant storage permission
                 snackPosition: SnackPosition.BOTTOM,
                 duration: Duration(seconds: 5),
               );
@@ -289,14 +291,14 @@ class DatabaseService {
       );
 
       if (result == null) {
-        Get.snackbar('အမှားဖြစ်ပေါ်ခဲ့သည်', 'ဖိုင်တည်နေရာမရွေးချယ်ထားပါ'); // No file location selected
+        Get.snackbar('Error', 'No file location selected'); // No file location selected
         return null;
       }
 
       return result;
     } catch (e) {
       print('Backup error: $e');
-      Get.snackbar('အမှားဖြစ်ပေါ်ခဲ့သည်', 'အရန်သိမ်းဆည်းမှုမအောင်မြင်ပါ: $e');
+      Get.snackbar('Error', 'Backup failed: $e');
       return null;
     }
   }
@@ -313,8 +315,8 @@ class DatabaseService {
             if (status.isPermanentlyDenied) {
               await openAppSettings();
               Get.snackbar(
-                'အမှားဖြစ်ပေါ်ခဲ့သည်', // Error
-                'ကျေးဇူးပြု၍ ဆက်တင်များတွင် "ဖိုင်အားလုံးကိုဝင်ရောက်ခွင့်" ခွင့်ပြုချက်ပေးပါ။', // Please grant "All files access" permission
+                'Error', // Error
+                'Please grant "All files access" permission in settings.', // Please grant "All files access" permission
                 snackPosition: SnackPosition.BOTTOM,
                 duration: Duration(seconds: 5),
               );
@@ -328,8 +330,8 @@ class DatabaseService {
             if (status.isPermanentlyDenied) {
               await openAppSettings();
               Get.snackbar(
-                'အမှားဖြစ်ပေါ်ခဲ့သည်', // Error
-                'ကျေးဇူးပြု၍ ဆက်တင်များတွင် သိုလှောင်မှုခွင့်ပြုချက်ပေးပါ။', // Please grant storage permission
+                'Error', // Error
+                'Please grant storage permission in settings.', // Please grant storage permission
                 snackPosition: SnackPosition.BOTTOM,
                 duration: Duration(seconds: 5),
               );
@@ -345,13 +347,13 @@ class DatabaseService {
       final sourceFile = File(backupFilePath);
 
       if (!await sourceFile.exists()) {
-        throw Exception('အရန်ဖိုင်မတွေ့ပါ သို့မဟုတ် ဝင်ရောက်ခွင့်မရှိပါ'); // Backup file not found or inaccessible
+        throw Exception('Backup file not found or inaccessible'); // Backup file not found or inaccessible
       }
 
       // Validate file size
       final fileSize = await sourceFile.length();
       if (fileSize == 0) {
-        throw Exception('အရန်ဖိုင်သည်ဗလာဖြစ်နေပါသည်'); // Backup file is empty
+        throw Exception('Backup file is empty'); // Backup file is empty
       }
 
       // Validate database file before copying
@@ -363,11 +365,11 @@ class DatabaseService {
             !tables.any((table) => table['name'] == tableCustomers) ||
             !tables.any((table) => table['name'] == tableOrders)) {
           await tempDb.close();
-          throw Exception('ဖိုင်သည်မဖြစ်မနေဒေတာဘေ့စ်ဖိုင်မဟုတ်ပါ'); // Invalid database file
+          throw Exception('Invalid database file'); // Invalid database file
         }
         await tempDb.close();
       } catch (e) {
-        throw Exception('မဖြစ်မနေဒေတာဘေ့စ်ဖိုင်: $e'); // Invalid database file
+        throw Exception('Invalid database file: $e'); // Invalid database file
       }
 
       // Close current DB
@@ -384,7 +386,7 @@ class DatabaseService {
       return true;
     } catch (e) {
       print('Restore error: $e');
-      Get.snackbar('အမှားဖြစ်ပေါ်ခဲ့သည်', 'ပြန်လည်ရယူမှုမအောင်မြင်ပါ: $e');
+      Get.snackbar('Error', 'Restore failed: $e');
       return false;
     }
   }

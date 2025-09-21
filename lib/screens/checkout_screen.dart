@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
+import '../controllers/order_controller.dart'; // Add this import
 import '../models/customer.dart'; // Add this import
 import '../services/database_service.dart'; // Add this import for DatabaseService
 import '../main.dart'; // Import main.dart to access MainScreen
@@ -156,6 +157,8 @@ class CheckoutScreen extends StatelessWidget {
                             final dbService = DatabaseService();
                             await dbService.addCustomer(cartController.selectedCustomer.value!);
                             await cartController.checkout();
+                            final orderController = Get.find<OrderController>();
+                            await orderController.loadOrders();
                             Get.offAll(() => MainScreen());
                             Get.snackbar(
                               'Success',

@@ -1,10 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:az_pos/controllers/product_controller.dart';
 import 'package:az_pos/models/product.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'dart:io';
 
 class ProductManagementScreen extends StatelessWidget {
   final ProductController productController = Get.find<ProductController>();
@@ -13,6 +13,136 @@ class ProductManagementScreen extends StatelessWidget {
   final _priceController = TextEditingController();
   final _stockController = TextEditingController();
   String? _imagePath;
+
+  // Show edit dialog
+  void _showEditDialog(Product product) {
+    final editFormKey = GlobalKey<FormState>();
+    final editNameController = TextEditingController(text: product.name);
+    final editPriceController = TextEditingController(text: product.price.toStringAsFixed(2));
+    final editStockController = TextEditingController(text: product.stock.toString());
+    String? editedImagePath = product.imageUrl;
+    Widget? imagePreview = product.imageUrl.isNotEmpty
+        ? Image.file(File(product.imageUrl), height: 100, fit: BoxFit.cover)
+        : null;
+
+    Get.dialog(
+      StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(
+              'Edit Product',
+              style: GoogleFonts.roboto(fontWeight: FontWeight.bold),
+            ),
+            content: SingleChildScrollView(
+              child: Form(
+                key: editFormKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: editNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Product Name',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      style: GoogleFonts.roboto(),
+                      validator: (value) => value!.isEmpty ? 'Enter product name' : null,
+                    ),
+                    SizedBox(height: 12),
+                    TextFormField(
+                      controller: editPriceController,
+                      decoration: InputDecoration(
+                        labelText: 'Price',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      keyboardType: TextInputType.number,
+                      style: GoogleFonts.roboto(),
+                      validator: (value) => value!.isEmpty ? 'Enter price' : null,
+                    ),
+                    SizedBox(height: 12),
+                    TextFormField(
+                      controller: editStockController,
+                      decoration: InputDecoration(
+                        labelText: 'Stock Quantity',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      keyboardType: TextInputType.number,
+                      style: GoogleFonts.roboto(),
+                      validator: (value) => value!.isEmpty ? 'Enter stock quantity' : null,
+                    ),
+                    SizedBox(height: 16),
+                    if (imagePreview != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: imagePreview,
+                      ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+                        if (pickedFile != null) {
+                          editedImagePath = pickedFile.path;
+                          setState(() {
+                            imagePreview = Image.file(File(editedImagePath!), height: 100, fit: BoxFit.cover);
+                          });
+                          Get.snackbar(
+                            'Success',
+                            'New image selected',
+                            snackPosition: SnackPosition.TOP,
+                          );
+                        }
+                      },
+                      child: Text(
+                        'Select New Image',
+                        style: GoogleFonts.roboto(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(double.infinity, 50),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (editFormKey.currentState!.validate()) {
+                    await productController.updateProduct(Product(
+                      id: product.id,
+                      name: editNameController.text,
+                      price: double.parse(editPriceController.text),
+                      stock: int.parse(editStockController.text),
+                      imageUrl: editedImagePath ?? '',
+                    ));
+
+                    // Refresh UI
+                    productController.products.refresh();
+
+                    // Close dialog
+                    if (Get.isDialogOpen ?? false) Get.back();
+
+                    Get.snackbar(
+                      'Success',
+                      'Product updated',
+                      snackPosition: SnackPosition.TOP,
+                    );
+                  }
+                },
+                child: Text(
+                  'Update',
+                  style: GoogleFonts.roboto(fontSize: 16),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +204,7 @@ class ProductManagementScreen extends StatelessWidget {
                             Get.snackbar(
                               'Success',
                               'Image selected',
-                              snackPosition: SnackPosition.BOTTOM,
+                              snackPosition: SnackPosition.TOP,
                             );
                           }
                         },
@@ -104,7 +234,7 @@ class ProductManagementScreen extends StatelessWidget {
                             Get.snackbar(
                               'Success',
                               'Product added',
-                              snackPosition: SnackPosition.BOTTOM,
+                              snackPosition: SnackPosition.TOP,
                             );
                           }
                         },
@@ -137,16 +267,25 @@ class ProductManagementScreen extends StatelessWidget {
                             'Price: ${product.price.toStringAsFixed(2)} MMK, Stock: ${product.stock}',
                             style: GoogleFonts.roboto(),
                           ),
-                          trailing: IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () {
-                              productController.deleteProduct(product.id);
-                              Get.snackbar(
-                                'Success',
-                                'Product deleted',
-                                snackPosition: SnackPosition.BOTTOM,
-                              );
-                            },
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                onPressed: () => _showEditDialog(product),
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () {
+                                  productController.deleteProduct(product.id);
+                                  Get.snackbar(
+                                    'Success',
+                                    'Product deleted',
+                                    snackPosition: SnackPosition.TOP,
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       );
