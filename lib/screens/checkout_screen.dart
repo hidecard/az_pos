@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
-import 'home_screen.dart';
 import '../models/customer.dart'; // Add this import
+import '../services/database_service.dart'; // Add this import for DatabaseService
+import '../main.dart'; // Import main.dart to access MainScreen
 
 class CheckoutScreen extends StatelessWidget {
   final CartController cartController = Get.find();
@@ -151,8 +152,11 @@ class CheckoutScreen extends StatelessWidget {
                                 email: '',
                               );
                             }
+                            // Save the guest customer to the database to avoid unknown in history
+                            final dbService = DatabaseService();
+                            await dbService.addCustomer(cartController.selectedCustomer.value!);
                             await cartController.checkout();
-                            Get.offAll(() => HomeScreen());
+                            Get.offAll(() => MainScreen());
                             Get.snackbar(
                               'Success',
                               'Order completed',
@@ -161,12 +165,17 @@ class CheckoutScreen extends StatelessWidget {
                               colorText: Colors.white,
                             );
                           } catch (e) {
-                            Get.snackbar(
-                              'Error',
-                              'Failed to complete order: $e',
-                              snackPosition: SnackPosition.TOP,
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white,
+                            Get.dialog(
+                              AlertDialog(
+                                title: Text('Error'),
+                                content: Text('Failed to complete order: $e'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Get.back(),
+                                    child: Text('OK'),
+                                  ),
+                                ],
+                              ),
                             );
                           }
                         },
