@@ -2,6 +2,7 @@ enum PaymentMethod {
   cash,
   card,
   digital,
+  credit,
 }
 
 extension PaymentMethodExtension on PaymentMethod {
@@ -13,6 +14,8 @@ extension PaymentMethodExtension on PaymentMethod {
         return 'Card';
       case PaymentMethod.digital:
         return 'Digital';
+      case PaymentMethod.credit:
+        return 'Credit';
     }
   }
 
@@ -24,8 +27,9 @@ extension PaymentMethodExtension on PaymentMethod {
         return PaymentMethod.card;
       case 'digital':
         return PaymentMethod.digital;
-      default:
-        return PaymentMethod.cash; // default fallback
+      case 'credit':
+        return PaymentMethod.credit;
     }
+    throw ArgumentError('Invalid payment method: $value');
   }
 }

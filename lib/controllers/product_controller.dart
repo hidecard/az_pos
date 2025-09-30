@@ -30,4 +30,11 @@ class ProductController extends GetxController {
     await _dbService.deleteProduct(id);
     await loadProducts();
   }
+
+  List<Product> get lowStockProducts => products.where((p) => p.isLowStock).toList();
+
+  Future<void> updateStock(int productId, int newStock) async {
+    await _dbService.updateStock(productId, newStock);
+    await loadProducts();
+  }
 }
