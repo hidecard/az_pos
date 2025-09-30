@@ -5,6 +5,8 @@ import 'package:az_pos/models/customer.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CustomerManagementScreen extends StatelessWidget {
+  CustomerManagementScreen({super.key});
+
   final CustomerController customerController = Get.find<CustomerController>();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();

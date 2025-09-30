@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -11,6 +10,7 @@ import '../models/product.dart';
 import '../models/customer.dart';
 import '../models/order.dart';
 import '../models/cart_item.dart';
+import '../models/payment_method.dart';
 import 'dart:convert';
 
 class DatabaseService {
@@ -30,7 +30,7 @@ class DatabaseService {
     String path = join(await getDatabasesPath(), dbName);
     return await openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -60,7 +60,8 @@ class DatabaseService {
         customerId INTEGER,
         items TEXT,
         total REAL,
-        date TEXT
+        date TEXT,
+        paymentMethod TEXT
       )
     ''');
 
@@ -82,6 +83,9 @@ class DatabaseService {
           date TEXT
         )
       ''');
+    }
+    if (oldVersion < 7) {
+      await db.execute('ALTER TABLE $tableOrders ADD COLUMN paymentMethod TEXT DEFAULT "cash"');
     }
   }
 
@@ -189,12 +193,17 @@ class DatabaseService {
         );
       }
 
+      // Parse payment method
+      final paymentMethodStr = map['paymentMethod']?.toString() ?? 'cash';
+      final paymentMethod = PaymentMethodExtension.fromString(paymentMethodStr);
+
       orders.add(Order(
         id: map['id'],
         customer: customer,
         items: items,
         total: map['total'].toDouble(),
         date: DateTime.parse(map['date']),
+        paymentMethod: paymentMethod,
       ));
     }
     // Sort orders by date descending (latest first)
@@ -217,11 +226,12 @@ class DatabaseService {
           'items': itemsJson,
           'total': order.total,
           'date': order.date.toIso8601String(),
+          'paymentMethod': order.paymentMethod.name,
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     } catch (e) {
-      print('Error saving order: $e');
+
       Get.snackbar('Error', 'Failed to save order: $e');
       rethrow;
     }
@@ -297,7 +307,7 @@ class DatabaseService {
 
       return result;
     } catch (e) {
-      print('Backup error: $e');
+
       Get.snackbar('Error', 'Backup failed: $e');
       return null;
     }
@@ -385,7 +395,7 @@ class DatabaseService {
       _database = await _initDB();
       return true;
     } catch (e) {
-      print('Restore error: $e');
+
       Get.snackbar('Error', 'Restore failed: $e');
       return false;
     }
@@ -403,7 +413,6 @@ class DatabaseService {
 
   Future<void> debugSchema() async {
     final db = await database;
-    final result = await db.rawQuery('PRAGMA table_info($tableOrders)');
-    print('Orders table schema: $result');
+    await db.rawQuery('PRAGMA table_info($tableOrders)');
   }
 }

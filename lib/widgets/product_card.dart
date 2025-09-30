@@ -6,8 +6,9 @@ import '../models/cart_item.dart';
 import '../controllers/cart_controller.dart';
 
 class ProductCard extends StatelessWidget {
+  const ProductCard({super.key, required this.product});
+
   final Product product;
-  ProductCard({required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class ProductCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.07),
+            color: Colors.black.withValues(alpha: 0.07),
             spreadRadius: 2,
             blurRadius: 10,
             offset: const Offset(0, 4),
@@ -178,8 +179,9 @@ class ProductCard extends StatelessWidget {
 // Example Usage in GridView
 // ----------------------------
 class ProductGrid extends StatelessWidget {
+  const ProductGrid({super.key, required this.products});
+
   final List<Product> products;
-  ProductGrid({required this.products});
 
   @override
   Widget build(BuildContext context) {

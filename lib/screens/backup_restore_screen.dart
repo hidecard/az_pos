@@ -8,6 +8,8 @@ import '../controllers/customer_controller.dart';
 import '../controllers/order_controller.dart';
 
 class BackupRestoreScreen extends StatelessWidget {
+  BackupRestoreScreen({super.key});
+
   final DatabaseService _dbService = DatabaseService();
 
   @override

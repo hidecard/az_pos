@@ -1,5 +1,6 @@
 import 'cart_item.dart';
 import 'customer.dart';
+import 'payment_method.dart';
 
 class Order {
   final int id;
@@ -7,6 +8,7 @@ class Order {
   final List<CartItem> items;
   final double total;
   final DateTime date;
+  final PaymentMethod paymentMethod;
 
   Order({
     required this.id,
@@ -14,5 +16,6 @@ class Order {
     required this.items,
     required this.total,
     required this.date,
+    required this.paymentMethod,
   });
 }

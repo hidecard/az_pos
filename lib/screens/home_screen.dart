@@ -6,6 +6,8 @@ import '../controllers/customer_controller.dart';
 import '../widgets/product_card.dart';
 
 class HomeScreen extends StatelessWidget {
+  HomeScreen({super.key});
+
   final ProductController productController = Get.find();
   final CartController cartController = Get.find();
   final CustomerController customerController = Get.find();
