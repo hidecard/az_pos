@@ -5,6 +5,8 @@ import 'package:az_pos/models/order.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class OrderHistoryScreen extends StatelessWidget {
+  OrderHistoryScreen({super.key});
+
   final OrderController orderController = Get.find<OrderController>();
 
   @override
@@ -40,7 +42,7 @@ class OrderHistoryScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Customer: ${order.customer.name ?? 'Unknown'}',
+                      'Customer: ${order.customer.name}',
                       style: GoogleFonts.roboto(),
                     ),
                     Text(
@@ -48,7 +50,7 @@ class OrderHistoryScreen extends StatelessWidget {
                       style: GoogleFonts.roboto(),
                     ),
                     Text(
-                      'Date: ${order.date.toString().substring(0, 10)}',
+                      'Date: ${order.date.toLocal().toString().split(' ')[0]}',
                       style: GoogleFonts.roboto(),
                     ),
                   ],
@@ -66,9 +68,9 @@ class OrderHistoryScreen extends StatelessWidget {
 }
 
 class OrderDetailScreen extends StatelessWidget {
-  final Order order;
+  const OrderDetailScreen({super.key, required this.order});
 
-  OrderDetailScreen({required this.order});
+  final Order order;
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +94,7 @@ class OrderDetailScreen extends StatelessWidget {
                   style: GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  'Customer: ${order.customer.name ?? 'Unknown'}',
+                  'Customer: ${order.customer.name}',
                   style: GoogleFonts.roboto(fontSize: 16),
                 ),
                 Text(

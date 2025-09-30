@@ -2,12 +2,14 @@ import 'package:get/get.dart';
 import '../models/cart_item.dart';
 import '../models/customer.dart';
 import '../models/order.dart';
+import '../models/payment_method.dart';
 import '../services/database_service.dart';
 
 class CartController extends GetxController {
   final DatabaseService _dbService = DatabaseService();
   var cartItems = <CartItem>[].obs;
   var selectedCustomer = Rx<Customer?>(null);
+  var selectedPaymentMethod = Rx<PaymentMethod?>(null);
   var totalAmount = 0.0.obs;
   var isLoading = false.obs; // Added for loading state
 
@@ -49,8 +51,8 @@ class CartController extends GetxController {
   }
 
   Future<void> checkout() async {
-    if (cartItems.isEmpty || selectedCustomer.value == null) {
-      throw Exception('Cart is empty or no customer selected');
+    if (cartItems.isEmpty || selectedCustomer.value == null || selectedPaymentMethod.value == null) {
+      throw Exception('Cart is empty, no customer selected, or no payment method selected');
     }
     isLoading.value = true; // Set loading
     try {
@@ -63,10 +65,12 @@ class CartController extends GetxController {
         items: cartItems.toList(),
         total: totalAmount.value,
         date: DateTime.now(),
+        paymentMethod: selectedPaymentMethod.value!,
       );
       await _dbService.saveOrder(order);
       cartItems.clear();
       selectedCustomer.value = null;
+      selectedPaymentMethod.value = null;
       totalAmount.value = 0.0;
     } finally {
       isLoading.value = false; // Reset loading

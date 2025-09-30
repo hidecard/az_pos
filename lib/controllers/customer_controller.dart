@@ -30,4 +30,36 @@ class CustomerController extends GetxController {
     await _dbService.deleteCustomer(id);
     await loadCustomers();
   }
+
+  Future<void> addLoyaltyPoints(int customerId, int points) async {
+    final customer = customers.firstWhere((c) => c.id == customerId);
+    final updatedCustomer = Customer(
+      id: customer.id,
+      name: customer.name,
+      phone: customer.phone,
+      email: customer.email,
+      address: customer.address,
+      loyaltyPoints: customer.loyaltyPoints + points,
+      creditBalance: customer.creditBalance,
+      dateOfBirth: customer.dateOfBirth,
+      notes: customer.notes,
+    );
+    await updateCustomer(updatedCustomer);
+  }
+
+  Future<void> updateCreditBalance(int customerId, double amount) async {
+    final customer = customers.firstWhere((c) => c.id == customerId);
+    final updatedCustomer = Customer(
+      id: customer.id,
+      name: customer.name,
+      phone: customer.phone,
+      email: customer.email,
+      address: customer.address,
+      loyaltyPoints: customer.loyaltyPoints,
+      creditBalance: customer.creditBalance + amount,
+      dateOfBirth: customer.dateOfBirth,
+      notes: customer.notes,
+    );
+    await updateCustomer(updatedCustomer);
+  }
 }

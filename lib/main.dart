@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'controllers/product_controller.dart';
 import 'controllers/cart_controller.dart';
 import 'controllers/customer_controller.dart';
@@ -12,11 +14,22 @@ import 'screens/customer_management_screen.dart';
 import 'screens/order_history_screen.dart';
 import 'screens/backup_restore_screen.dart';  // New import
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
+  // Initialize Firebase Messaging
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  await messaging.requestPermission();
+  String? token = await messaging.getToken();
+  print('FCM Token: $token');
+
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     Get.put(ProductController());
@@ -46,6 +59,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MainScreen extends StatelessWidget {
+  MainScreen({super.key});
+
   final List<Widget> _screens = [
     HomeScreen(),
     ProductManagementScreen(),

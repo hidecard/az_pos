@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/cart_controller.dart';
-import '../controllers/order_controller.dart'; // Add this import
-import '../models/customer.dart'; // Add this import
-import '../services/database_service.dart'; // Add this import for DatabaseService
-import '../main.dart'; // Import main.dart to access MainScreen
+import '../controllers/order_controller.dart';
+import '../models/customer.dart';
+import '../models/payment_method.dart';
+import '../services/database_service.dart';
+import '../main.dart';
 
 class CheckoutScreen extends StatelessWidget {
+  CheckoutScreen({super.key});
+
   final CartController cartController = Get.find();
 
   @override
@@ -128,6 +131,39 @@ class CheckoutScreen extends StatelessWidget {
                       },
                     ),
               SizedBox(height: 24),
+              // Payment Method Selection
+              Text(
+                'Payment Method',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 8),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: PaymentMethod.values.map((method) {
+                      return Obx(() => ListTile(
+                        title: Text(method.name),
+                        leading: Radio<PaymentMethod>(
+                          value: method,
+                          groupValue: cartController.selectedPaymentMethod.value,
+                          onChanged: (value) {
+                            cartController.selectedPaymentMethod.value = value;
+                          },
+                        ),
+                      ));
+                    }).toList(),
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
               // Checkout Button
               SizedBox(
                 width: double.infinity,
@@ -153,13 +189,20 @@ class CheckoutScreen extends StatelessWidget {
                                 email: '',
                               );
                             }
-                            // Save the guest customer to the database to avoid unknown in history
+
                             final dbService = DatabaseService();
                             await dbService.addCustomer(cartController.selectedCustomer.value!);
+
+                            // TODO: Implement printing functionality
+                            // Bluetooth printing commented out due to package issues
+                            // await bluetoothPrinterService.printInvoice(...);
+
                             await cartController.checkout();
                             final orderController = Get.find<OrderController>();
                             await orderController.loadOrders();
+
                             Get.offAll(() => MainScreen());
+
                             Get.snackbar(
                               'Success',
                               'Order completed',
@@ -182,7 +225,7 @@ class CheckoutScreen extends StatelessWidget {
                             );
                           }
                         },
-                  child: cartController.isLoading.value == true
+                  child: cartController.isLoading.value
                       ? CircularProgressIndicator(color: Colors.white)
                       : Text(
                           'Pay & Complete Order',

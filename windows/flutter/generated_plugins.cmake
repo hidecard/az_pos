@@ -3,9 +3,14 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  charset_converter
   file_selector_windows
+  firebase_core
+  flutter_pos_printer_platform
   flutter_secure_storage_windows
+  network_info_plus_windows
   permission_handler_windows
+  printing
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

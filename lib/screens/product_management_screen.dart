@@ -7,6 +7,8 @@ import 'package:az_pos/controllers/product_controller.dart';
 import 'package:az_pos/models/product.dart';
 
 class ProductManagementScreen extends StatelessWidget {
+  ProductManagementScreen({super.key});
+
   final ProductController productController = Get.find<ProductController>();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();

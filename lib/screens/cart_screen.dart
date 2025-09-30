@@ -6,6 +6,8 @@ import '../models/customer.dart';
 import 'checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
+  CartScreen({super.key});
+
   final CartController cartController = Get.find();
   final CustomerController customerController = Get.find();
 
